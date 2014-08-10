@@ -20,7 +20,7 @@ public class HillGenerator : MonoBehaviour
 	[Tooltip("The total number of blocks in the road")]public int totalBlocks = 5000;
 	[Tooltip("The standard texture")]public Texture textureA;
 	[Tooltip("The texture applied every textureStep blocks")]public Texture textureB;
-	public int textureStep = 5;
+	[Tooltip("How often to apply texture b")]public int textureStep = 5;
 	
 	SeededRandomiser rndmsr;
 	[HideInInspector] public int zOffset = 0;

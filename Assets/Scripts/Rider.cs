@@ -4,7 +4,7 @@ using System.Collections;
 public class Rider : MonoBehaviour {
 
 	public GameObject world;
-
+	
 	public float moveSpeed = 0.5f;
 	public float inputStrength = 1.0f;
 	public float accelerationDueToGravity = 5.0f;
@@ -23,6 +23,7 @@ public class Rider : MonoBehaviour {
 	public float sprintBoostMaximum = 3.0f;
 	public float sprintBoostFalloff = 0.99f;
 	public float bikeWeight = 1;
+	public float sidewaysSpeed = 3;
 
 	float currentSpeed = 0.0f;
 	Vector3 normal = Vector3.zero;
@@ -37,7 +38,7 @@ public class Rider : MonoBehaviour {
 	float powerOutputZ;
 	float speedOutputZ;
 	float staminaOutputZ;
-
+	
 	// Use this for initialization
 	void Start () {
 		generator = world.GetComponent<HillGenerator>();
@@ -59,14 +60,15 @@ public class Rider : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		float move = Input.GetAxis("Horizontal") * -inputStrength;
+		// along road
+		float moveZ = Input.GetAxis("Horizontal") * -inputStrength;
 		bool rightIsOn = Input.GetButton("Right");
 		bool leftIsOn = Input.GetButton("Left");
 		float accelerationOnSlope = (accelerationDueToGravity * -normal.z);
 
 		if (currentStamina < staminaMax  / 20) {
 			print ("KNACKERED");
-			move /= 2;
+			moveZ /= 2;
 			currentSpeed /= 1.2f;
 		}
 		if (currentStamina < staminaMax / 10) {
@@ -76,13 +78,15 @@ public class Rider : MonoBehaviour {
 		}
 
 		updateStamina(leftIsOn, rightIsOn, accelerationOnSlope);
-		updatePower(move, leftIsOn);
-		updateSpeed(move, accelerationOnSlope);
+		updatePower(moveZ, leftIsOn);
+		updateSpeed(moveZ, accelerationOnSlope);
 
 		int newBlockPosition = blockOffset - generator.zOffset;
 		float currentPositionInBlock = (-generator.offset % 1);
 		UpdateCurrentBlock(newBlockPosition);
 		UpdateRiderYPosition(currentBlock, currentPositionInBlock);
+		
+		UpdateRiderXPosition();
 	}
 
 	void updateStamina (bool leftIsOn, bool rightIsOn, float accelerationOnSlope) {
@@ -153,7 +157,20 @@ public class Rider : MonoBehaviour {
 		UpdateRiderRotation(currentBlock);
 	}
 
+	void UpdateRiderXPosition () {
+		// across road
+		Vector3 position = gameObject.transform.position;
+		float moveX = Input.GetAxis("Vertical") * sidewaysSpeed * Time.smoothDeltaTime;
+		float newPosition = position.x - moveX;
+		int roadHalfWidth = ((int)generator.roadWidth / 2) - 1;
+		if (newPosition < -roadHalfWidth) newPosition = -roadHalfWidth;
+		else if (newPosition > roadHalfWidth) newPosition = roadHalfWidth;
+		position.x = newPosition;
+		gameObject.transform.position = position;
+	}
+	
 	void UpdateRiderYPosition (GameObject block, float currentPositionInBlock) {
+		Vector3 originalPosition = gameObject.transform.position;
 		ICornerFinder finder  = (ICornerFinder)block.GetComponent(typeof(ICornerFinder));
 		Vector3 centre = finder.GetTopCentrePoint(currentPositionInBlock);
 		centre += block.transform.position;
@@ -165,6 +182,7 @@ public class Rider : MonoBehaviour {
 			centre.y = gameObject.transform.position.y - dist;
 		}
 
+		centre.x = originalPosition.x;
 		gameObject.transform.position = centre;
 	}
 

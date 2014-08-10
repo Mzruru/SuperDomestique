@@ -5,44 +5,61 @@ public class ZoomCameraWithSpeed : MonoBehaviour
 {
 
 	public GameObject subject;
-	public Vector3 fullyOutPosition;
+	public float minSpeed = 1f;
 	public float maxSpeed = 10f;
-	public Vector3 easeSpeed = new Vector3(0.5f, 0.5f, 0.5f);
-	Vector3 vectorToSubject = Vector3.zero;
-	Vector3 vectorToFullyOut = Vector3.zero;
+	public Vector3 ease = new Vector3(0.5f, 0.5f, 0.5f);
+	public Vector3 zoomToSpeedRatio = new Vector3(1, 1, 1);
+	public int smoothOverFrames = 30;
+	
 	Vector3 subjectLastPosition;
-	Vector3 movement;
-	Vector3 targetOffset;
-	Vector3 currentPosition;
+	Vector3 cameraOffset;
 	Vector3 targetPosition;
+	Vector3 targetOffset;
+	
+	float[] smoothSpeeds;
+	int c = 0;
+	int m = 0;
 	
 	// Use this for initialization
 	void Start ()
 	{
-		vectorToSubject = gameObject.transform.position - subject.transform.position;
-		vectorToFullyOut = fullyOutPosition - subject.transform.position;
 		subjectLastPosition = subject.transform.position;
-		targetOffset = gameObject.transform.position;
-		currentPosition = gameObject.transform.position;
-		targetPosition = gameObject.transform.position;
-	}
+		cameraOffset = transform.position - subject.transform.position;
+		smoothSpeeds = new float[smoothOverFrames];
+	 }
 	
 	// Update is called once per frame
 	void Update ()
 	{
-		movement = (subject.transform.position - subjectLastPosition);
-		float speed = movement.sqrMagnitude;
-		if (speed > maxSpeed * maxSpeed) targetOffset = vectorToFullyOut;
-		else targetOffset = Vector3.Lerp(vectorToSubject, vectorToFullyOut, Mathf.Lerp(0, maxSpeed * maxSpeed, speed));
+		RepositionCamera();
+	}
+	
+	void RepositionCamera () 
+	{
+		float speed = (subjectLastPosition - subject.transform.position).magnitude;
+		speed = Mathf.Clamp(speed, minSpeed, maxSpeed);
 		
+		smoothSpeeds[c] = speed;
+		if (c > m) m = c;
+		float smoothedSpeed = 0;
+		for (int i = 0; i < m; i++)
+		{
+			smoothedSpeed += smoothSpeeds[i];	
+		}
+		smoothedSpeed /= (float)(m + 1);
+		c++;
+		if (c >= smoothOverFrames) c = 0;
+		
+		targetOffset = Vector3.Scale(cameraOffset, zoomToSpeedRatio * (smoothedSpeed / minSpeed));
+			
 		targetPosition = subject.transform.position + targetOffset;
-		currentPosition = gameObject.transform.position;
-		currentPosition.x = Mathf.Lerp(currentPosition.x, targetPosition.x, easeSpeed.x);
-		currentPosition.y = Mathf.Lerp(currentPosition.y, targetPosition.y, easeSpeed.y);
-		currentPosition.z = Mathf.Lerp(currentPosition.z, targetPosition.z, easeSpeed.z);
+		Vector3 offset = (targetPosition - transform.position);
+		offset.x *= ease.x;
+		offset.y *= ease.y;
+		offset.z *= ease.z;
+		targetPosition = transform.position + offset;
+		transform.position = targetPosition;
 		
-		if (currentPosition.y < targetPosition.y) currentPosition.y = targetPosition.y;
-		gameObject.transform.position = currentPosition;
 		subjectLastPosition = subject.transform.position;
 	}
 }
