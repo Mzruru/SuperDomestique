@@ -12,7 +12,6 @@ public class ZoomCameraWithSpeed : MonoBehaviour
 	[Tooltip ("The number of frames over which subject speed will be smoothed. Higher value results in smoother movement.")]public int smoothOverFrames = 100;
 	
 	Vector3 subjectLastPosition;
-	Vector3 cameraOffset;
 	Vector3 minZoomOffset;
 	Vector3 maxZoomOffset;
 	Vector3 targetPosition;
@@ -26,7 +25,6 @@ public class ZoomCameraWithSpeed : MonoBehaviour
 	void Start ()
 	{
 		subjectLastPosition = subject.transform.position;
-		cameraOffset = transform.position - subject.transform.position;
 		smoothSpeeds = new float[smoothOverFrames];
 		minZoomOffset = transform.position - subject.transform.position;
 		maxZoomOffset = fullZoomPosition - subject.transform.position;

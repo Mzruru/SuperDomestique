@@ -5,25 +5,25 @@ public class Rider : MonoBehaviour {
 
 	public GameObject world;
 	
-	public float moveSpeed = 0.5f;
-	public float inputStrength = 1.0f;
-	public float accelerationDueToGravity = 5.0f;
-	public float friction = 0.99f;
-	public float staminaMax = 2;
-	public GameObject powerOutput;
-	public float powerOutputScale = 1;
-	public GameObject speedOutput;
-	public float speedOutputScale = 0.25f;
-	public GameObject staminaOutput;
-	public float staminaOutputScale = 1f;
-	public float staminaUsedNormal = 0.05f;
-	public float staminaUsedSprint = 0.1f;
-	public float staminaRecovery = 0.05f;
-	public float sprintBoostPower = 0.1f;
-	public float sprintBoostMaximum = 3.0f;
-	public float sprintBoostFalloff = 0.99f;
-	public float bikeWeight = 1;
-	public float sidewaysSpeed = 3;
+	[Tooltip("The overall speed of the rider")] float moveSpeed = 0.5f;
+	[Tooltip("How strong the horizontal input is")]public float inputStrength = 1.0f;
+	[Tooltip("The effect of hills on speed")]public float accelerationDueToGravity = 5.0f;
+	[Tooltip("How quickly the rider will slow down without any input")]public float friction = 0.01f;
+	[Tooltip("The rider's starting stamina")]public float staminaMax = 2;
+	[Tooltip("How much stamina is used when pressing the move input (right)")]public float staminaUsedNormal = 0.05f;
+	[Tooltip("How much stamina is used when pressing the sprint input (left)")]public float staminaUsedSprint = 0.1f;
+	[Tooltip("How fast stamina recovers when not pressing an input")]public float staminaRecovery = 0.05f;
+	[Tooltip("How much power boost holding sprint provides per update")]public float sprintBoostPower = 0.1f;
+	[Tooltip("The maximum power boost sprinting can provide")]public float sprintBoostMaximum = 3.0f;
+	[Tooltip("How quickly sprint boost reduces after releasing the sprint input")]public float sprintBoostFalloff = 0.99f;
+	[Tooltip("How heavy the bike is. Effects acceleration on hills")]public float bikeWeight = 1;
+	[Tooltip("How fast the bike moves sideways")]public float sidewaysSpeed = 3;
+	[Tooltip("The gameobject used to display the current power")]public GameObject powerOutput;
+	[Tooltip("Scales the power output value in the display")]public float powerOutputScale = 1;
+	[Tooltip("The gameobject used to display the current speed")]public GameObject speedOutput;
+	[Tooltip("Scales the speed output value in the display")]public float speedOutputScale = 0.25f;
+	[Tooltip("The gameobject used to display the current stamina")]public GameObject staminaOutput;
+	[Tooltip("Scales the stamina output value in the display")]public float staminaOutputScale = 1f;
 
 	float currentSpeed = 0.0f;
 	Vector3 normal = Vector3.zero;
@@ -64,7 +64,7 @@ public class Rider : MonoBehaviour {
 		float moveZ = Input.GetAxis("Horizontal") * -inputStrength;
 		bool rightIsOn = Input.GetButton("Right");
 		bool leftIsOn = Input.GetButton("Left");
-		float accelerationOnSlope = (accelerationDueToGravity * -normal.z);
+		float accelerationOnSlope = (accelerationDueToGravity * -normal.z) * bikeWeight;
 
 		if (currentStamina < staminaMax  / 20) {
 			print ("KNACKERED");
@@ -125,7 +125,7 @@ public class Rider : MonoBehaviour {
 	}
 
 	void updateSpeed (float move, float accelerationOnSlope) {
-		currentSpeed = (currentSpeed + accelerationOnSlope + move) * friction;
+		currentSpeed = (currentSpeed + accelerationOnSlope + move) * (1 - friction);
 		if (currentSpeed > 0) currentSpeed = 0;
 		float totalSpeed = (currentSpeed * moveSpeed) - currentSprintBoost;
 		if (totalSpeed > -0.1f) totalSpeed = -0.1f;
