@@ -3,7 +3,7 @@ using System.Collections;
 
 public class SeaMovement : MonoBehaviour {
 
-	MeshModder meshModder;
+	IMeshModder meshModder;
 	float startPosition;
 	int offset;
 	public int speed = 100;
@@ -14,7 +14,7 @@ public class SeaMovement : MonoBehaviour {
 	void Start () {
 		startPosition = transform.position.y;
 		offset = Random.Range (0, 359);
-		meshModder = gameObject.GetComponent<MeshModder>();
+		meshModder = (IMeshModder)gameObject.GetComponent(typeof(IMeshModder));
 
 		if (sinValues == null) {
 			CalculateValues();
@@ -39,7 +39,7 @@ public class SeaMovement : MonoBehaviour {
 		position.y = y;
 		transform.position = position;
 
-		if (meshModder)
+		if (meshModder != null)
 			meshModder.UpdateVertices();
 	}
 }

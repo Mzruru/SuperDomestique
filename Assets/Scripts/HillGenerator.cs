@@ -136,7 +136,7 @@ public class HillGenerator : MonoBehaviour
 				PositionBlock (block, x, y, z, zOffset);
 				int index = GetBlockIndexForMapCoords (x, z, zOffset);
 				blockMap [index] = block;
-				Colourise (block, blockName);
+				//Colourise (block, blockName);
 			}
 		}
 
@@ -242,16 +242,19 @@ public class HillGenerator : MonoBehaviour
 		if (block == null)
 			return;
 		
-		MeshModder meshModder = block.GetComponent<MeshModder> ();
-		meshModder.lb = GetModValues (mapX - 1, mapZ + 1, zOffset);
-		meshModder.b = GetModValues (mapX, mapZ + 1, zOffset);
-		meshModder.rb = GetModValues (mapX + 1, mapZ + 1, zOffset);
-		meshModder.l = GetModValues (mapX - 1, mapZ, zOffset);
-		meshModder.r = GetModValues (mapX + 1, mapZ, zOffset);
-		meshModder.lf = GetModValues (mapX - 1, mapZ - 1, zOffset);
-		meshModder.f = GetModValues (mapX, mapZ - 1, zOffset);
-		meshModder.rf = GetModValues (mapX + 1, mapZ - 1, zOffset);
+		IMeshModder meshModder = (IMeshModder)block.GetComponent (typeof(IMeshModder));
+		// 0:l, 1:lb, 2:b, 3:rb, 4:r, 5:rf, 6:f, 7:lf
+		MeshModValues[] vals = {GetModValues (mapX - 1, mapZ, zOffset),
+			GetModValues (mapX - 1, mapZ + 1, zOffset),
+			GetModValues (mapX, mapZ + 1, zOffset),
+			GetModValues (mapX + 1, mapZ + 1, zOffset),
+			GetModValues (mapX + 1, mapZ, zOffset),
+			GetModValues (mapX + 1, mapZ - 1, zOffset),
+			GetModValues (mapX, mapZ - 1, zOffset),
+			GetModValues (mapX - 1, mapZ - 1, zOffset)};
 
+		meshModder.SetVals(vals);
+		
 		meshModder.UpdateVertices ();
 	}
 
@@ -307,6 +310,11 @@ public class HillGenerator : MonoBehaviour
 			found.transform.parent = gameObject.transform;
 		}
 
+		if (found.GetComponent<QuadMeshModder>() != null)
+		{
+			found.transform.eulerAngles = new Vector3(90, 0, 0);	
+		}
+		
 		found.SetActive (true);
 
 		return found;

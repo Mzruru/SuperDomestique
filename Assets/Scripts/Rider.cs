@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class Rider : MonoBehaviour {
@@ -77,6 +77,7 @@ public class Rider : MonoBehaviour {
 			sprintBoosted = false;
 		}
 
+		// order is important!
 		updateStamina(leftIsOn, rightIsOn, accelerationOnSlope);
 		updatePower(moveZ, leftIsOn);
 		updateSpeed(moveZ, accelerationOnSlope);
@@ -171,7 +172,7 @@ public class Rider : MonoBehaviour {
 	
 	void UpdateRiderYPosition (GameObject block, float currentPositionInBlock) {
 		Vector3 originalPosition = gameObject.transform.position;
-		ICornerFinder finder  = (ICornerFinder)block.GetComponent(typeof(ICornerFinder));
+		IMeshModder finder  = (IMeshModder)block.GetComponent(typeof(IMeshModder));
 		Vector3 centre = finder.GetTopCentrePoint(currentPositionInBlock);
 		centre += block.transform.position;
 		centre += normal * (gameObject.transform.localScale.y / 2);
@@ -187,23 +188,8 @@ public class Rider : MonoBehaviour {
 	}
 
 	void UpdateRiderRotation (GameObject block) {
-		normal = GetAverageOfTopNormal(block);
+		IMeshModder modder = (IMeshModder)block.GetComponent(typeof(IMeshModder));
+		normal = modder.GetAverageOfTopNormal();
 		gameObject.transform.rotation = Quaternion.FromToRotation(Vector3.up, normal);
-	}
-
-	Vector3 GetAverageOfTopNormal (GameObject block) {
-		Vector3[] normals = block.GetComponent<MeshFilter>().mesh.normals;
-
-		int c = 0;
-		Vector3 avg = Vector3.zero;
-		foreach (Vector3 normal in normals) {
-			if (normal.y == 0 || normal.y < 0) continue;
-			avg += normal;
-			c++;
-		}
-
-		avg /= (float)c;
-
-		return avg;
 	}
 }
