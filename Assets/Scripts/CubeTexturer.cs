@@ -4,18 +4,17 @@ using System.Collections;
 [ExecuteInEditMode]
 public class CubeTexturer : MonoBehaviour
 {
+	public Rect front = new Rect (0, 0, 0.333f, 0.333f);
+	public Rect top = new Rect (0.334f, 0, 0.333f, 0.333f);
+	public Rect back = new Rect (0.667f, 0, 0.333f, 0.333f);
+	public Rect bottom = new Rect (0, 0.334f, 0.333f, 0.333f);
+	public Rect left = new Rect (0.334f, 0.333f, 0.334f, 0.333f);
+	public Rect right = new Rect (0.667f, 0.334f, 0.333f, 0.333f);
 
-		public Rect front = new Rect (0, 0, 0.333f, 0.333f);
-		public Rect top = new Rect (0.334f, 0, 0.333f, 0.333f);
-		public Rect back = new Rect (0.667f, 0, 0.333f, 0.333f);
-		public Rect bottom = new Rect (0, 0.334f, 0.333f, 0.333f);
-		public Rect left = new Rect (0.334f, 0.333f, 0.334f, 0.333f);
-		public Rect right = new Rect (0.667f, 0.334f, 0.333f, 0.333f);
-	
-		void Start ()
-		{
-				UpdateUVs ();
-		}
+	void Start ()
+	{
+			UpdateUVs ();
+	}
 	
 	#if UNITY_EDITOR
 	void Update () {
