@@ -10,8 +10,7 @@ public class Rider : MonoBehaviour {
 	[Tooltip("The effect of hills on speed")]public float accelerationDueToGravity = 5.0f;
 	[Tooltip("How quickly the rider will slow down without any input")]public float friction = 0.01f;
 	[Tooltip("The rider's starting stamina")]public float staminaMax = 2;
-	[Tooltip("How much stamina is used when pressing the move input (right)")]public float staminaUsedNormal = 0.05f;
-	[Tooltip("How much stamina is used when pressing the sprint input (left)")]public float staminaUsedSprint = 0.1f;
+	[Tooltip("How much stamina is used when pressing the sprint input (right)")]public float staminaUsedSprint = 0.1f;
 	[Tooltip("How fast stamina recovers when not pressing an input")]public float staminaRecovery = 0.05f;
 	[Tooltip("How much power boost holding sprint provides per update")]public float sprintBoostPower = 0.1f;
 	[Tooltip("The maximum power boost sprinting can provide")]public float sprintBoostMaximum = 3.0f;
@@ -20,8 +19,8 @@ public class Rider : MonoBehaviour {
 	[Tooltip("How fast the bike moves sideways")]public float sidewaysSpeed = 3;
 	[Tooltip("The gameobject used to display the current power")]public GameObject powerOutput;
 	[Tooltip("Scales the power output value in the display")]public float powerOutputScale = 1;
-	[Tooltip("The gameobject used to display the current speed")]public GameObject speedOutput;
-	[Tooltip("Scales the speed output value in the display")]public float speedOutputScale = 0.25f;
+	//[Tooltip("The gameobject used to display the current speed")]public GameObject speedOutput;
+	//[Tooltip("Scales the speed output value in the display")]public float speedOutputScale = 0.25f;
 	[Tooltip("The gameobject used to display the current stamina")]public GameObject staminaOutput;
 	[Tooltip("Scales the stamina output value in the display")]public float staminaOutputScale = 1f;
 
@@ -49,9 +48,11 @@ public class Rider : MonoBehaviour {
 			powerOutputZ = powerOutput.transform.position.z;
 		}
 
+/*
 		if (speedOutput) {
 			speedOutputZ = speedOutput.transform.position.z;
 		}
+*/
 
 		if (staminaOutput) {
 			staminaOutputZ = staminaOutput.transform.position.z;
@@ -61,26 +62,22 @@ public class Rider : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		// along road
-		float moveZ = Input.GetAxis("Horizontal") * -inputStrength;
-		bool rightIsOn = Input.GetButton("Right");
-		bool leftIsOn = Input.GetButton("Left");
+		float moveZ = -inputStrength;
+		bool sprinting = Input.GetButton("Right");
 		float accelerationOnSlope = (accelerationDueToGravity * -normal.z) * bikeWeight;
 
-		if (currentStamina < staminaMax  / 20) {
-			print ("KNACKERED");
-			moveZ /= 2;
-			currentSpeed /= 1.2f;
-		}
 		if (currentStamina < staminaMax / 10) {
 			print ("CANNOT SPRINT:" + currentStamina + " : " + staminaMax);
-			leftIsOn = false;
+			moveZ /= 2;
+			currentSpeed /= 1.2f;
+			sprinting = false;
 			sprintBoosted = false;
 		}
 
 		// order is important!
-		updateStamina(leftIsOn, rightIsOn, accelerationOnSlope);
-		updatePower(moveZ, leftIsOn);
-		updateSpeed(moveZ, accelerationOnSlope);
+		updateStamina(sprinting, accelerationOnSlope);
+		updatePower(moveZ, sprinting);
+		//updateSpeed(moveZ, accelerationOnSlope);
 
 		int newBlockPosition = blockOffset - generator.zOffset;
 		float currentPositionInBlock = (-generator.offset % 1);
@@ -90,19 +87,15 @@ public class Rider : MonoBehaviour {
 		UpdateRiderXPosition();
 	}
 
-	void updateStamina (bool leftIsOn, bool rightIsOn, float accelerationOnSlope) {
+	void updateStamina (bool sprinting, float accelerationOnSlope) {
 		float staminaReduction = 0; 
-		if (rightIsOn) {
-			staminaReduction = staminaUsedNormal * accelerationOnSlope;
-			if (staminaReduction < staminaUsedNormal) staminaReduction = staminaUsedNormal;
-		}
-		if (leftIsOn) {
-			staminaReduction = staminaUsedSprint * accelerationOnSlope;
-			if (staminaReduction < staminaUsedNormal) staminaReduction = staminaUsedNormal;
+		if (sprinting) {
+			staminaReduction = staminaUsedSprint;
+			if (accelerationOnSlope < 0) staminaReduction *= -accelerationOnSlope;
 		}
 		currentStamina -= staminaReduction;
 		
-		if (!rightIsOn && !leftIsOn) {
+		if (!sprinting) {
 			currentStamina += staminaRecovery;
 			if (currentStamina > staminaMax) currentStamina = staminaMax;
 		}
@@ -111,8 +104,8 @@ public class Rider : MonoBehaviour {
 		positionGauge(staminaOutput, currentStamina * staminaOutputScale, staminaOutputZ);
 	}
 
-	void updatePower (float move, bool leftIsOn) {
-		if (leftIsOn && !sprintBoosted) {
+	void updatePower (float move, bool sprinting) {
+		if (sprinting && !sprintBoosted) {
 			currentSprintBoost += sprintBoostPower;
 			if (currentSprintBoost > sprintBoostMaximum) currentSprintBoost = sprintBoostMaximum;
 			sprintBoosted = true;
@@ -125,6 +118,7 @@ public class Rider : MonoBehaviour {
 		positionGauge(powerOutput, (move - (currentSprintBoost / 2)) * powerOutputScale, powerOutputZ);
 	}
 
+/*
 	void updateSpeed (float move, float accelerationOnSlope) {
 		currentSpeed = (currentSpeed + accelerationOnSlope + move) * (1 - friction);
 		if (currentSpeed > 0) currentSpeed = 0;
@@ -134,6 +128,7 @@ public class Rider : MonoBehaviour {
 
 		positionGauge(speedOutput, totalSpeed * speedOutputScale, speedOutputZ);
 	}
+	*/
 
 	void positionGauge (GameObject gauge, float scale, float offset) {
 		if (gauge == null) return;
