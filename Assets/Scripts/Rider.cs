@@ -5,8 +5,7 @@ public class Rider : MonoBehaviour {
 
 	public GameObject world;
 	
-	[Tooltip("The overall speed of the rider")] float moveSpeed = 0.5f;
-	[Tooltip("How strong the horizontal input is")]public float inputStrength = 1.0f;
+	[Tooltip("How strong the horizontal input is")]public float riderSpeed = 1.0f;
 	[Tooltip("The effect of hills on speed")]public float accelerationDueToGravity = 5.0f;
 	[Tooltip("How quickly the rider will slow down without any input")]public float friction = 0.01f;
 	[Tooltip("The rider's starting stamina")]public float staminaMax = 2;
@@ -62,7 +61,7 @@ public class Rider : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		// along road
-		float moveZ = -inputStrength;
+		float moveZ = -riderSpeed;
 		bool sprinting = Input.GetButton("Right");
 		float accelerationOnSlope = (accelerationDueToGravity * -normal.z) * bikeWeight;
 
@@ -77,7 +76,7 @@ public class Rider : MonoBehaviour {
 		// order is important!
 		updateStamina(sprinting, accelerationOnSlope);
 		updatePower(moveZ, sprinting);
-		//updateSpeed(moveZ, accelerationOnSlope);
+		updateSpeed(moveZ, accelerationOnSlope);
 
 		int newBlockPosition = blockOffset - generator.zOffset;
 		float currentPositionInBlock = (-generator.offset % 1);
@@ -118,17 +117,15 @@ public class Rider : MonoBehaviour {
 		positionGauge(powerOutput, (move - (currentSprintBoost / 2)) * powerOutputScale, powerOutputZ);
 	}
 
-/*
 	void updateSpeed (float move, float accelerationOnSlope) {
 		currentSpeed = (currentSpeed + accelerationOnSlope + move) * (1 - friction);
 		if (currentSpeed > 0) currentSpeed = 0;
-		float totalSpeed = (currentSpeed * moveSpeed) - currentSprintBoost;
+		float totalSpeed = (currentSpeed) - currentSprintBoost;
 		if (totalSpeed > -0.1f) totalSpeed = -0.1f;
 		generator.Move(totalSpeed);
 
-		positionGauge(speedOutput, totalSpeed * speedOutputScale, speedOutputZ);
+		//positionGauge(speedOutput, totalSpeed * speedOutputScale, speedOutputZ);
 	}
-	*/
 
 	void positionGauge (GameObject gauge, float scale, float offset) {
 		if (gauge == null) return;
