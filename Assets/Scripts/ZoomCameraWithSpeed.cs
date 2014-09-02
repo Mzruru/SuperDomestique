@@ -9,8 +9,7 @@ public class ZoomCameraWithSpeed : MonoBehaviour
 	[Tooltip ("The maximum speed to be used to affect the camera")] public float maxSpeed = 10f;
 	[Tooltip ("The minimum angle to be used to affect the camera")] public float minAngle = 0f;
 	[Tooltip ("The maximum angle to be used to affect the camera")] public float maxAngle = 10f;
-	[Tooltip ("Strength of easing to the new target position for speed adjustment. A value of 1 will snap to the target.")] public Vector3 speedEase = new Vector3(0.5f, 0.75f, 0.5f);
-	[Tooltip ("Strength of easing to the new target position for angle adjustment. A value of 1 will snap to the target.")] public Vector3 angleEase = new Vector3(0.5f, 0.75f, 0.5f);
+	[Tooltip ("Strength of easing to the new target position for adjustment. A value of 1 will snap to the target.")] public Vector3 ease = new Vector3(0.5f, 0.75f, 0.5f);
 	[Tooltip ("When the subject is at the maximum speed, the camera will be at this position.")] public Vector3 fullSpeedZoomPosition = new Vector3(1, 1, 1);
 	[Tooltip ("When the subject is at the maximum speed, the camera will be at this position.")] public Vector3 fullAngleZoomPosition = new Vector3(1, 1, 1);
 	[Tooltip ("The number of frames over which subject speed will be smoothed. Higher value results in smoother movement, but also a delay in returning to position.")]public int smoothSpeedOverFrames = 100;
@@ -76,15 +75,18 @@ public class ZoomCameraWithSpeed : MonoBehaviour
 		
 		Vector3 speedOffset = Vector3.Lerp(minZoomOffset, maxSpeedZoomOffset, Mathf.InverseLerp(minSpeed, maxSpeed, smoothedSpeed));
 		Vector3 angleOffset = Vector3.Lerp(minZoomOffset, maxAngleZoomOffset, Mathf.InverseLerp(minAngle, maxAngle, smoothedAngle));
-		if (speedEase.x == 1) speedOffset.x = maxSpeedZoomOffset.x;
-		if (speedEase.y == 1) speedOffset.y = maxSpeedZoomOffset.y;
-		if (speedEase.z == 1) speedOffset.z = maxSpeedZoomOffset.z;
+		if (ease.x == 1) speedOffset.x = maxSpeedZoomOffset.x;
+		if (ease.y == 1) speedOffset.y = maxSpeedZoomOffset.y;
+		if (ease.z == 1) speedOffset.z = maxSpeedZoomOffset.z;
+		if (ease.x == 1) angleOffset.x = maxAngleZoomOffset.x;
+		if (ease.y == 1) angleOffset.y = maxAngleZoomOffset.y;
+		if (ease.z == 1) angleOffset.z = maxAngleZoomOffset.z;
 		targetOffset = (speedOffset + angleOffset) / 2;
 		targetPosition = subject.transform.position + targetOffset;
 		Vector3 offset = (targetPosition - transform.position);
-		offset.x *= speedEase.x;
-		offset.y *= speedEase.y;
-		offset.z *= speedEase.z;
+		offset.x *= ease.x;
+		offset.y *= ease.y;
+		offset.z *= ease.z;
 		targetPosition = transform.position + offset;
 		transform.position = targetPosition;
 		
