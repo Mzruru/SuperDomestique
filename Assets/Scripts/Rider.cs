@@ -5,6 +5,7 @@ public class Rider : MonoBehaviour {
 
 	public GameObject world;
 	
+	[Tooltip("The actual bike mesh")]public GameObject meshObject;
 	[Tooltip("How strong the horizontal input is")]public float riderSpeed = 1.0f;
 	[Tooltip("The effect of hills on speed")]public float accelerationDueToGravity = 5.0f;
 	[Tooltip("How quickly the rider will slow down without any input")]public float friction = 0.01f;
@@ -16,14 +17,14 @@ public class Rider : MonoBehaviour {
 	[Tooltip("How quickly sprint boost reduces after releasing the sprint input")]public float sprintBoostFalloff = 0.99f;
 	[Tooltip("How heavy the bike is. Effects acceleration on hills")]public float bikeWeight = 1;
 	[Tooltip("How fast the bike moves sideways")]public float sidewaysSpeed = 3;
+	[Tooltip("How much the bike leans when moving sideways in degrees")]public float maxLean = 30f;
 	[Tooltip("The gameobject used to display the current power")]public GameObject powerOutput;
 	[Tooltip("Scales the power output value in the display")]public float powerOutputScale = 1;
-	//[Tooltip("The gameobject used to display the current speed")]public GameObject speedOutput;
-	//[Tooltip("Scales the speed output value in the display")]public float speedOutputScale = 0.25f;
 	[Tooltip("The gameobject used to display the current stamina")]public GameObject staminaOutput;
 	[Tooltip("Scales the stamina output value in the display")]public float staminaOutputScale = 1f;
 
 	float currentSpeed = 0.0f;
+	float currentSidewaysSpeed = 0.0f;
 	Vector3 normal = Vector3.zero;
 	int blockOffset = 0;
 	int currentBlockPosition;
@@ -32,7 +33,7 @@ public class Rider : MonoBehaviour {
 	float currentStamina;
 	bool sprintBoosted;
 	float currentSprintBoost = 0.0f;
-
+	
 	float powerOutputZ;
 	float speedOutputZ;
 	float staminaOutputZ;
@@ -153,13 +154,22 @@ public class Rider : MonoBehaviour {
 	void UpdateRiderXPosition () {
 		// across road
 		Vector3 position = gameObject.transform.position;
-		float moveX = Input.GetAxis("Vertical") * sidewaysSpeed * Time.smoothDeltaTime;
-		float newPosition = position.x - moveX;
+		float newSpeed = Input.GetAxis("Vertical") * sidewaysSpeed * Time.smoothDeltaTime;
+		float newPosition = position.x - newSpeed;
 		int roadHalfWidth = ((int)generator.roadWidth / 2) - 1;
-		if (newPosition < -roadHalfWidth) newPosition = -roadHalfWidth;
-		else if (newPosition > roadHalfWidth) newPosition = roadHalfWidth;
+		if (newPosition < -roadHalfWidth) {
+			newPosition = -roadHalfWidth;
+			currentSidewaysSpeed *= 0.9f;
+		}
+		else if (newPosition > roadHalfWidth) {
+			newPosition = roadHalfWidth;
+			currentSidewaysSpeed *= 0.9f;
+		} else {
+			currentSidewaysSpeed = newSpeed;
+		}
 		position.x = newPosition;
 		gameObject.transform.position = position;
+		
 	}
 	
 	void UpdateRiderYPosition (GameObject block, float currentPositionInBlock) {
@@ -167,8 +177,8 @@ public class Rider : MonoBehaviour {
 		IMeshModder finder  = (IMeshModder)block.GetComponent(typeof(IMeshModder));
 		Vector3 centre = finder.GetTopCentrePoint(currentPositionInBlock);
 		centre += block.transform.position;
-		centre += normal * (gameObject.transform.localScale.y / 2);
-
+		centre -= normal * 0.5f;
+		
 		if (centre.y < gameObject.transform.position.y) { 
 			float dist = gameObject.transform.position.y - centre.y;
 			dist *= bikeWeight;
@@ -183,5 +193,6 @@ public class Rider : MonoBehaviour {
 		IMeshModder modder = (IMeshModder)block.GetComponent(typeof(IMeshModder));
 		normal = modder.GetAverageOfTopNormal();
 		gameObject.transform.rotation = Quaternion.FromToRotation(Vector3.up, normal);
+		gameObject.transform.Rotate(new Vector3(0, 0, (currentSidewaysSpeed / sidewaysSpeed) * maxLean));
 	}
 }
