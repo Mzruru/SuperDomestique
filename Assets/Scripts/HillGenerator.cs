@@ -23,7 +23,7 @@ public class HillGenerator : MonoBehaviour
 	[Tooltip("How often to apply texture b")]public int textureStep = 5;
 	
 	SeededRandomiser rndmsr;
-	[HideInInspector] public int zOffset = 0;
+	[HideInInspector] public int xOffset = 0;
 	[HideInInspector] public int currentWidth;
 	[HideInInspector] public float offset = 0;
 	RoadProfile currentProfile;
@@ -79,9 +79,9 @@ public class HillGenerator : MonoBehaviour
 	public void Move (float amount)
 	{
 		Vector3 m = Vector3.zero;
-		m.z = amount;
+		m.x = amount;
 		gameObject.transform.Translate (m);
-		UpdateZOffset ();
+		UpdateXOffset ();
 	}
 
 	int GenerateHillSection (int index, int startBlock)
@@ -104,12 +104,12 @@ public class HillGenerator : MonoBehaviour
 		return length;
 	}
 
-	void UpdateZOffset ()
+	void UpdateXOffset ()
 	{
-		offset = gameObject.transform.position.z;
-		int oldZOffset = zOffset;
-		int newZOffset = Mathf.FloorToInt(offset);
-		int dif = newZOffset - oldZOffset;
+		offset = gameObject.transform.position.x;
+		int oldXOffset = xOffset;
+		int newXOffset = Mathf.FloorToInt(offset);
+		int dif = newXOffset - oldXOffset;
 		if (dif < 0) {
 			for (int i = 0; i < -dif; i++) {
 				ShiftForwardsOnRoad ();
@@ -127,14 +127,14 @@ public class HillGenerator : MonoBehaviour
 
 	void GenerateBlocks (int generatorCount, int start, int end)
 	{
-		for (int z = start; z < end; z++) {
-			for (int x = 0; x < currentWidth; x++) {
-				string blockName = currentProfile.profile [x];
-				float y = GetYForMapPosition (x, z, zOffset);
+		for (int x = start; x < end; x++) {
+			for (int z = 0; z < currentWidth; z++) {
+				string blockName = currentProfile.profile [z];
+				float y = GetYForMapPosition (x, z, xOffset);
 				GameObject block = GetBlockFromPoolOrCreate (blockName);
-				block.renderer.material.mainTexture = z % textureStep == 0 ? textureB : textureA;
-				PositionBlock (block, x, y, z, zOffset);
-				int index = GetBlockIndexForMapCoords (x, z, zOffset);
+				block.renderer.material.mainTexture = x % textureStep == 0 ? textureB : textureA;
+				PositionBlock (block, x, y, z, xOffset);
+				int index = GetBlockIndexForMapCoords (x, z, xOffset);
 				blockMap [index] = block;
 				//Colourise (block, blockName);
 			}
@@ -146,17 +146,17 @@ public class HillGenerator : MonoBehaviour
 
 	void PositionBlocks ()
 	{
-		float xPerBlock = roadWidth / currentProfile.profile.Length;
-		for (int z = 0; z < visibleLength; z++) {
-			for (int x = 0; x < currentWidth; x++) {
-				GameObject block = blockMap [(z * currentWidth) + x];
+		float zPerBlock = roadWidth / currentProfile.profile.Length;
+		for (int x = 0; x < visibleLength; x++) {
+			for (int z = 0; z < currentWidth; z++) {
+				GameObject block = blockMap [(x * currentWidth) + z];
 				Vector3 position = Vector3.zero;
-				float y = GetYForMapPosition (x, z, zOffset);
-				position.x = x * xPerBlock;
+				float y = GetYForMapPosition (x, z, xOffset);
+				position.x = (x - xOffset) + offset;
 				position.y = y;
-				position.z = (z - zOffset) + offset;
+				position.z = z * zPerBlock;
 				
-				block.transform.localScale = new Vector3 (xPerBlock, 1, 1);
+				block.transform.localScale = new Vector3 (1, 1, zPerBlock);
 				block.transform.position = position;
 			}
 		}
@@ -164,28 +164,28 @@ public class HillGenerator : MonoBehaviour
 
 	void PositionBlock (GameObject block, int x, float y, int z, int zOffset)
 	{
-		float xPerBlock = roadWidth / currentProfile.profile.Length;
+		float zPerBlock = roadWidth / currentProfile.profile.Length;
 		Vector3 position = Vector3.zero;
-		position.x = x * xPerBlock;
+		position.x = x;
 		position.y = y;
-		position.z = z;
+		position.z = z * zPerBlock;
 
-		block.transform.localScale = new Vector3 (xPerBlock, 1, 1);
+		block.transform.localScale = new Vector3 (1, 1, zPerBlock);
 		block.transform.localPosition = position;
 	}
 
 	// Getters
 
-	int GetBlockIndexForMapCoords (int mapX, int mapZ, int zOffset)
+	int GetBlockIndexForMapCoords (int mapX, int mapZ, int xOffset)
 	{
-		return (int)(((mapZ + zOffset) * currentWidth) + mapX);
+		return (int)(((mapX + xOffset) * currentWidth) + mapZ);
 	}
 
-	public GameObject GetObjectForPosition (int mapX, int mapZ, int zOffset)
+	public GameObject GetObjectForPosition (int mapX, int mapZ, int xOffset)
 	{
-		if (mapX < 0 || mapX >= currentWidth || mapZ < 0 || mapZ + zOffset >= visibleLength)
+		if (mapZ < 0 || mapZ >= currentWidth || mapX < 0 || mapX + xOffset >= visibleLength)
 			return null;
-		int index = GetBlockIndexForMapCoords (mapX, mapZ, zOffset);
+		int index = GetBlockIndexForMapCoords (mapX, mapZ, xOffset);
 		if (index < 0)
 			return null;
 		if (index >= blockMap.Length)
@@ -227,40 +227,40 @@ public class HillGenerator : MonoBehaviour
 		colouriser.UpdateWithColour (mesh, type.colour);
 	}
 
-	void InitMeshModifiers (int xs, int zs, int xe, int ze)
+	void InitMeshModifiers (int zs, int xs, int ze, int xe)
 	{
 		for (int z = zs; z < ze; z++) {
 			for (int x = xs; x < xe; x++) {
-				InitMeshModifier (x, z, zOffset);
+				InitMeshModifier (x, z, xOffset);
 			}
 		}
 	}
 
-	void InitMeshModifier (int mapX, int mapZ, int zOffset)
+	void InitMeshModifier (int mapX, int mapZ, int xOffset)
 	{
-		GameObject block = GetObjectForPosition (mapX, mapZ, zOffset);
+		GameObject block = GetObjectForPosition (mapX, mapZ, xOffset);
 		if (block == null)
 			return;
 		
 		IMeshModder meshModder = (IMeshModder)block.GetComponent (typeof(IMeshModder));
 		// 0:l, 1:lb, 2:b, 3:rb, 4:r, 5:rf, 6:f, 7:lf
-		MeshModValues[] vals = {GetModValues (mapX - 1, mapZ, zOffset),
-			GetModValues (mapX - 1, mapZ + 1, zOffset),
-			GetModValues (mapX, mapZ + 1, zOffset),
-			GetModValues (mapX + 1, mapZ + 1, zOffset),
-			GetModValues (mapX + 1, mapZ, zOffset),
-			GetModValues (mapX + 1, mapZ - 1, zOffset),
-			GetModValues (mapX, mapZ - 1, zOffset),
-			GetModValues (mapX - 1, mapZ - 1, zOffset)};
+		MeshModValues[] vals = {GetModValues (mapX - 1, mapZ, xOffset),
+			GetModValues (mapX - 1, mapZ + 1, xOffset),
+			GetModValues (mapX, mapZ + 1, xOffset),
+			GetModValues (mapX + 1, mapZ + 1, xOffset),
+			GetModValues (mapX + 1, mapZ, xOffset),
+			GetModValues (mapX + 1, mapZ - 1, xOffset),
+			GetModValues (mapX, mapZ - 1, xOffset),
+			GetModValues (mapX - 1, mapZ - 1, xOffset)};
 
 		meshModder.SetVals(vals);
 		
 		meshModder.UpdateVertices ();
 	}
 
-	public MeshModValues GetModValues (int mapX, int mapZ, int zOffset)
+	public MeshModValues GetModValues (int mapX, int mapZ, int xOffset)
 	{
-		float y = mapX > -1 && mapX < currentProfile.profile.Length ? GetYForMapPosition (mapX, mapZ, zOffset) : 0.0f;
+		float y = mapZ > -1 && mapZ < currentProfile.profile.Length ? GetYForMapPosition (mapX, mapZ, xOffset) : 0.0f;
 		return new MeshModValues (true, y, false);
 	}
 	
@@ -273,13 +273,13 @@ public class HillGenerator : MonoBehaviour
 
 	float GetYForMapPosition (int mapX, int mapZ, int zOffset)
 	{
-		if (mapZ > totalBlocks) mapZ = totalBlocks;
-		else if (mapZ < 0) mapZ = 0;
+		if (mapX > totalBlocks) mapX = totalBlocks;
+		else if (mapX < 0) mapX = 0;
 		
-		HillSection section = GetSectionForBlockIndex (mapZ);
-		if (section == null) return currentProfile.relativeHeights [mapX];
-		float h = section.GetYForBlockIndex (mapZ);
-		return h + currentProfile.relativeHeights [mapX];
+		HillSection section = GetSectionForBlockIndex (mapX);
+		if (section == null) return currentProfile.relativeHeights [mapZ];
+		float h = section.GetYForBlockIndex (mapX);
+		return h + currentProfile.relativeHeights [mapZ];
 	}
 	
 	// Object Pooling
@@ -312,7 +312,7 @@ public class HillGenerator : MonoBehaviour
 
 		if (found.GetComponent<QuadMeshModder>() != null)
 		{
-			found.transform.eulerAngles = new Vector3(90, 0, 0);	
+			found.transform.eulerAngles = new Vector3(0, 0, 90);	
 		}
 		
 		found.SetActive (true);
@@ -322,7 +322,7 @@ public class HillGenerator : MonoBehaviour
 
 	void ShiftForwardsOnRoad ()
 	{
-		zOffset--;
+		xOffset--;
 		for (int i = 0; i < blockMap.Length; i++) {
 			if (i < currentWidth) {
 				RecycleBlock (blockMap [i]);
@@ -331,7 +331,7 @@ public class HillGenerator : MonoBehaviour
 			}
 		}
 
-		int start = visibleLength - zOffset - 1;
+		int start = visibleLength - xOffset - 1;
 		GenerateBlocks (currentGeneratorCount, start, start + 1);
 	}
 

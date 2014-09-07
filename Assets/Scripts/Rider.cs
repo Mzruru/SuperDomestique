@@ -62,13 +62,13 @@ public class Rider : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		// along road
-		float moveZ = -riderSpeed;
+		float moveX = -riderSpeed;
 		bool sprinting = Input.GetButton("Right");
-		float accelerationOnSlope = (accelerationDueToGravity * -normal.z) * bikeWeight;
+		float accelerationOnSlope = (accelerationDueToGravity * -normal.x) * bikeWeight;
 
 		if (currentStamina < staminaMax / 10) {
 			print ("CANNOT SPRINT:" + currentStamina + " : " + staminaMax);
-			moveZ /= 2;
+			moveX /= 2;
 			currentSpeed /= 1.2f;
 			sprinting = false;
 			sprintBoosted = false;
@@ -76,15 +76,15 @@ public class Rider : MonoBehaviour {
 
 		// order is important!
 		updateStamina(sprinting, accelerationOnSlope);
-		updatePower(moveZ, sprinting);
-		updateSpeed(moveZ, accelerationOnSlope);
+		updatePower(moveX, sprinting);
+		updateSpeed(moveX, accelerationOnSlope);
 
-		int newBlockPosition = blockOffset - generator.zOffset;
+		int newBlockPosition = blockOffset - generator.xOffset;
 		float currentPositionInBlock = (-generator.offset % 1);
 		UpdateCurrentBlock(newBlockPosition);
 		UpdateRiderYPosition(currentBlock, currentPositionInBlock);
 		
-		UpdateRiderXPosition();
+		UpdateRiderZPosition();
 	}
 
 	void updateStamina (bool sprinting, float accelerationOnSlope) {
@@ -145,17 +145,17 @@ public class Rider : MonoBehaviour {
 		if (currentBlockPosition == newPosition) return;
 
 		currentBlockPosition = newPosition;
-		int x = generator.currentWidth / 2;
-		currentBlock = generator.GetObjectForPosition(x, currentBlockPosition, generator.zOffset);
+		int z = generator.currentWidth / 2;
+		currentBlock = generator.GetObjectForPosition(currentBlockPosition, z, generator.xOffset);
 		
 		UpdateRiderRotation(currentBlock);
 	}
 
-	void UpdateRiderXPosition () {
+	void UpdateRiderZPosition () {
 		// across road
 		Vector3 position = gameObject.transform.position;
 		float newSpeed = Input.GetAxis("Vertical") * sidewaysSpeed * Time.smoothDeltaTime;
-		float newPosition = position.x - newSpeed;
+		float newPosition = position.z - newSpeed;
 		int roadHalfWidth = ((int)generator.roadWidth / 2) - 1;
 		if (newPosition < -roadHalfWidth) {
 			newPosition = -roadHalfWidth;
@@ -167,7 +167,7 @@ public class Rider : MonoBehaviour {
 		} else {
 			currentSidewaysSpeed = newSpeed;
 		}
-		position.x = newPosition;
+		position.z = newPosition;
 		gameObject.transform.position = position;
 		
 	}
@@ -175,7 +175,7 @@ public class Rider : MonoBehaviour {
 	void UpdateRiderYPosition (GameObject block, float currentPositionInBlock) {
 		Vector3 originalPosition = gameObject.transform.position;
 		IMeshModder finder  = (IMeshModder)block.GetComponent(typeof(IMeshModder));
-		Vector3 centre = finder.GetTopCentrePoint(currentPositionInBlock);
+		Vector3 centre = finder.GetPointOnTopFace(0.5f, currentPositionInBlock);
 		centre += block.transform.position;
 		centre -= normal * 0.5f;
 		
@@ -185,7 +185,7 @@ public class Rider : MonoBehaviour {
 			centre.y = gameObject.transform.position.y - dist;
 		}
 
-		centre.x = originalPosition.x;
+		centre.z = originalPosition.z;
 		gameObject.transform.position = centre;
 	}
 

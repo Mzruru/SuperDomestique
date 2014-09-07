@@ -26,19 +26,19 @@ public class AutoRider : MonoBehaviour {
 	bool sprintBoosted;
 	float currentSprintBoost = 0.0f;
 	float sprintTime;
-
+	
 	// Use this for initialization
 	void Start () {
 		generator = world.GetComponent<HillGenerator>();
-		blockOffset = Mathf.FloorToInt(gameObject.transform.position.z);
+		blockOffset = Mathf.FloorToInt(gameObject.transform.position.x);
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		// along road
-		float moveZ = -riderSpeed;
+		float moveX = -riderSpeed;
 		bool sprinting = Input.GetButton("Right") && !sprintBoosted && numberOfSprints > 0;
-		float accelerationOnSlope = (accelerationDueToGravity * -normal.z) * bikeWeight;
+		float accelerationOnSlope = (accelerationDueToGravity * -normal.x) * bikeWeight;
 		
 		if (sprinting)
 		{
@@ -54,13 +54,13 @@ public class AutoRider : MonoBehaviour {
 			currentSprintBoost -= sprintBoostFalloff * Time.deltaTime;
 		}
 		
-		updateSpeed(moveZ, accelerationOnSlope);
+		updateSpeed(moveX, accelerationOnSlope);
 		
-		int newBlockPosition = blockOffset - generator.zOffset;
+		int newBlockPosition = blockOffset - generator.xOffset;
 		float currentPositionInBlock = (-generator.offset % 1);
 		UpdateCurrentBlock(newBlockPosition);
 		UpdateRiderYPosition(currentBlock, currentPositionInBlock);
-		UpdateRiderXPosition();
+		//UpdateRiderZPosition();
 	}
 	
 	void updateSpeed (float move, float accelerationOnSlope) {
@@ -73,25 +73,26 @@ public class AutoRider : MonoBehaviour {
 	}
 	
 	void UpdateCurrentBlock (int newPosition) {
-		if (currentBlockPosition == newPosition) return;
+		if (currentBlockPosition == newPosition & currentBlock != null) return;
 		
 		currentBlockPosition = newPosition;
-		int x = generator.currentWidth / 2;
-		currentBlock = generator.GetObjectForPosition(x, currentBlockPosition, generator.zOffset);
+		int z = generator.currentWidth / 2;
+		currentBlock = generator.GetObjectForPosition(currentBlockPosition, z, generator.xOffset);
 		
 		UpdateRiderRotation(currentBlock);
 	}
 	
+	GameObject lastBlock;
 	void UpdateRiderYPosition (GameObject block, float currentPositionInBlock) {
 		Vector3 originalPosition = gameObject.transform.position;
 		IMeshModder finder  = (IMeshModder)block.GetComponent(typeof(IMeshModder));
-		Vector3 centre = finder.GetTopCentrePoint(currentPositionInBlock);
+		Vector3 centre = finder.GetPointOnTopFace(currentPositionInBlock, 0.5f);
+		float y = centre.y;
 		centre += block.transform.position;
 		centre -= normal * 0.5f;
 		
 		if (centre.y < gameObject.transform.position.y) { 
 			float dist = gameObject.transform.position.y - centre.y;
-			dist *= bikeWeight;
 			centre.y = gameObject.transform.position.y - dist;
 		}
 		
@@ -99,7 +100,7 @@ public class AutoRider : MonoBehaviour {
 		gameObject.transform.position = centre;
 	}
 	
-	void UpdateRiderXPosition () {
+	void UpdateRiderZPosition () {
 		// across road
 		Vector3 position = gameObject.transform.position;
 		float newSpeed = Input.GetAxis("Vertical") * sidewaysSpeed * Time.smoothDeltaTime;
@@ -115,7 +116,7 @@ public class AutoRider : MonoBehaviour {
 		} else {
 			currentSidewaysSpeed = newSpeed;
 		}
-		position.x = newPosition;
+		position.z = newPosition;
 		gameObject.transform.position = position;
 		
 	}
@@ -124,5 +125,6 @@ public class AutoRider : MonoBehaviour {
 		IMeshModder modder = (IMeshModder)block.GetComponent(typeof(IMeshModder));
 		normal = modder.GetAverageOfTopNormal();
 		gameObject.transform.rotation = Quaternion.FromToRotation(Vector3.up, normal);
+		gameObject.transform.Rotate(new Vector3(0, 90, 0));
 	}
 }

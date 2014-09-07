@@ -77,10 +77,18 @@ public class QuadMeshModder : PrimitiveModder, IMeshModder {
 		return Mathf.Abs(actual - target) < 0.001; 
 	}
 	
-	public Vector3 GetTopCentrePoint (float weighting) {
-		Vector3 front = (vertices[corners[0][0]] + vertices[corners[2][0]]) / 2;
-		Vector3 back = (vertices[corners[1][0]] + vertices[corners[3][0]]) / 2;
-		return back + ((back - front) * weighting);
+	public Vector3 GetPointOnTopFace (float weightingX, float weightingZ) {
+		Vector3 leftFront = vertices[corners[0][0]];
+		Vector3 leftBack = vertices[corners[1][0]];
+		Vector3 rightFront = vertices[corners[2][0]];
+		Vector3 rightBack = vertices[corners[3][0]];
+		
+		Vector3 front = leftFront + ((rightFront - leftFront) * weightingX);
+		Vector3 back = leftBack + ((rightBack - leftFront) * weightingX);
+		Vector3 left = leftFront + ((leftBack - leftFront) * weightingZ);
+		Vector3 right = rightFront + ((rightBack - rightFront) * weightingZ);
+		
+		return (front + back + left + right) / 4;
 	}
 	
 	public void Modify (int[] targets, MeshModValues obj1, MeshModValues obj2, MeshModValues obj3) {
