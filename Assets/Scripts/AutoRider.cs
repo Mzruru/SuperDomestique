@@ -87,7 +87,6 @@ public class AutoRider : MonoBehaviour {
 		Vector3 originalPosition = gameObject.transform.position;
 		IMeshModder finder  = (IMeshModder)block.GetComponent(typeof(IMeshModder));
 		Vector3 centre = finder.GetPointOnTopFace(currentPositionInBlock, 0.5f);
-		float y = centre.y;
 		centre += block.transform.position;
 		centre -= normal * 0.5f;
 		

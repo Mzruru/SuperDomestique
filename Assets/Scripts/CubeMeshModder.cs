@@ -97,14 +97,14 @@ public class CubeMeshModder : PrimitiveModder, IMeshModder {
 
 	public Vector3 GetPointOnTopFace (float weightingX, float weightingZ) {
 		Vector3 leftFront = vertices[corners[0][0]];
-		Vector3 leftBack = vertices[corners[1][0]];
+		//Vector3 leftBack = vertices[corners[1][0]];
 		Vector3 rightFront = vertices[corners[2][0]];
-		Vector3 rightBack = vertices[corners[3][0]];
+		//Vector3 rightBack = vertices[corners[3][0]];
 		
 		Vector3 front = leftFront + ((rightFront - leftFront) * weightingX);
-		Vector3 back = leftBack + ((rightBack - leftBack) * weightingX);
-		Vector3 left = leftFront + ((leftBack - leftFront) * weightingZ);
-		Vector3 right = rightFront + ((rightBack - rightFront) * weightingZ);
+		//Vector3 back = leftBack + ((rightBack - leftBack) * weightingX);
+		//Vector3 left = leftFront + ((leftBack - leftFront) * weightingZ);
+		//Vector3 right = rightFront + ((rightBack - rightFront) * weightingZ);
 		
 		return front;
 	}
