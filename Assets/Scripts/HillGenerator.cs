@@ -47,6 +47,8 @@ public class HillGenerator : MonoBehaviour
 
 		GenerateSections ();
 		GenerateBlocks (0, 0, visibleLength);
+		
+		move = gameObject.transform.position;
 	}
 
 	void GenerateSections ()
@@ -78,9 +80,10 @@ public class HillGenerator : MonoBehaviour
 
 	public void Move (float amount)
 	{
-		Vector3 m = Vector3.zero;
-		m.x = amount;
-		gameObject.transform.Translate (m);
+		move.x += amount;
+//		Vector3 m = Vector3.zero;
+//		m.x = amount;
+//		gameObject.transform.Translate (m);
 		UpdateXOffset ();
 	}
 
@@ -106,7 +109,7 @@ public class HillGenerator : MonoBehaviour
 
 	void UpdateXOffset ()
 	{
-		offset = gameObject.transform.position.x;
+		offset = move.x;//gameObject.transform.position.x;
 		int oldXOffset = xOffset;
 		int newXOffset = Mathf.FloorToInt(offset);
 		int dif = newXOffset - oldXOffset;

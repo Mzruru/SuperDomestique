@@ -16,6 +16,7 @@ public class AutoRider : MonoBehaviour {
 	[Tooltip("How heavy the bike is. Effects acceleration on hills")]public float bikeWeight = 1;
 	[Tooltip("How fast the bike moves sideways")]public float sidewaysSpeed = 3;
 	
+	Bounds riderBounds;
 	float currentSpeed = 0.0f;
 	float currentSidewaysSpeed = 0.0f;
 	Vector3 normal = Vector3.zero;
@@ -26,11 +27,14 @@ public class AutoRider : MonoBehaviour {
 	bool sprintBoosted;
 	float currentSprintBoost = 0.0f;
 	float sprintTime;
+	Vector3 moveVec;
 	
 	// Use this for initialization
 	void Start () {
 		generator = world.GetComponent<HillGenerator>();
 		blockOffset = Mathf.FloorToInt(gameObject.transform.position.x);
+		
+		riderBounds = meshObject.GetComponent<MeshFilter>().mesh.bounds;
 	}
 	
 	// Update is called once per frame
@@ -54,22 +58,25 @@ public class AutoRider : MonoBehaviour {
 			currentSprintBoost -= sprintBoostFalloff * Time.deltaTime;
 		}
 		
-		updateSpeed(moveX, accelerationOnSlope);
+		moveVec = Vector3.zero;
+		updateBasedOnSpeed(moveX, accelerationOnSlope);
 		
 		int newBlockPosition = blockOffset - generator.xOffset;
 		float currentPositionInBlock = (-generator.offset % 1);
 		UpdateCurrentBlock(newBlockPosition);
-		UpdateRiderYPosition(currentBlock, currentPositionInBlock);
-		//UpdateRiderZPosition();
+		UpdateRiderPosition(currentBlock, currentPositionInBlock);
 	}
 	
-	void updateSpeed (float move, float accelerationOnSlope) {
+	void updateBasedOnSpeed (float move, float accelerationOnSlope) {
 		currentSpeed = (currentSpeed + accelerationOnSlope + move) * (1 - friction);
 		if (currentSpeed > 0) currentSpeed = 0;
 		float totalSpeed = (currentSpeed) - currentSprintBoost;
 		if (totalSpeed > -0.1f) totalSpeed = -0.1f;
-		totalSpeed *= Time.deltaTime;
-		generator.Move(totalSpeed);
+		totalSpeed *= Time.smoothDeltaTime;
+		
+		float angle = Mathf.Atan2(normal.x, normal.y);
+		float speedZComp = Mathf.Cos(angle) * totalSpeed;
+		generator.Move(speedZComp);
 	}
 	
 	void UpdateCurrentBlock (int newPosition) {
@@ -82,42 +89,31 @@ public class AutoRider : MonoBehaviour {
 		UpdateRiderRotation(currentBlock);
 	}
 	
-	GameObject lastBlock;
-	void UpdateRiderYPosition (GameObject block, float currentPositionInBlock) {
-		Vector3 originalPosition = gameObject.transform.position;
+	void UpdateRiderPosition (GameObject block, float currentPositionInBlock) {
 		IMeshModder finder  = (IMeshModder)block.GetComponent(typeof(IMeshModder));
-		Vector3 centre = finder.GetPointOnTopFace(currentPositionInBlock, 0.5f);
-		centre += block.transform.position;
-		centre -= normal * 0.5f;
+		moveVec = finder.GetPointOnTopFace(currentPositionInBlock, 0.5f);
+		moveVec += block.transform.position;
+		moveVec += normal * riderBounds.extents.y * meshObject.transform.localScale.y;
 		
-		if (centre.y < gameObject.transform.position.y) { 
-			float dist = gameObject.transform.position.y - centre.y;
-			centre.y = gameObject.transform.position.y - dist;
-		}
+		UpdateRiderZPosition();
 		
-		centre.x = originalPosition.x;
-		gameObject.transform.position = centre;
+		gameObject.transform.position = moveVec;
 	}
 	
 	void UpdateRiderZPosition () {
 		// across road
 		Vector3 position = gameObject.transform.position;
 		float newSpeed = Input.GetAxis("Vertical") * sidewaysSpeed * Time.smoothDeltaTime;
-		float newPosition = position.x - newSpeed;
+		float newPosition = position.z - newSpeed;
 		int roadHalfWidth = ((int)generator.roadWidth / 2) - 1;
-		if (newPosition < -roadHalfWidth) {
-			newPosition = -roadHalfWidth;
-			currentSidewaysSpeed *= 0.9f;
-		}
-		else if (newPosition > roadHalfWidth) {
-			newPosition = roadHalfWidth;
+		if (newPosition < -roadHalfWidth || newPosition > roadHalfWidth) {
+			newSpeed = 0;
 			currentSidewaysSpeed *= 0.9f;
 		} else {
 			currentSidewaysSpeed = newSpeed;
 		}
-		position.z = newPosition;
-		gameObject.transform.position = position;
 		
+		moveVec.z = transform.position.z + newSpeed;
 	}
 	
 	void UpdateRiderRotation (GameObject block) {
