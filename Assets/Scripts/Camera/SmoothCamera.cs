@@ -6,15 +6,14 @@ public class SmoothCamera : MonoBehaviour
 {
 	[Tooltip ("What the camera should follow")] public GameObject subject;
 	[Tooltip ("Strength of easing to the new target position for adjustment. A value of 1 will snap to the target.")] public Vector3 ease = new Vector3(0.5f, 0.75f, 0.5f);
-	
-	Vector3 subjectLastPosition;
+	[Tooltip ("Whether or not to use orthographic depth sorting (might help z-fighting)")] public bool useOrtographicSorting = false;
 	Vector3 targetOffset;
 	
 	// Use this for initialization
 	void Start ()
 	{
-		subjectLastPosition = subject.transform.position;
 		targetOffset = transform.position - subject.transform.position;
+		if (useOrtographicSorting) gameObject.camera.transparencySortMode = TransparencySortMode.Orthographic;
 	 }
 	
 	// Update is called once per frame

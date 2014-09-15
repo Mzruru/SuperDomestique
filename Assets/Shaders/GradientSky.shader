@@ -1,27 +1,27 @@
 ﻿Shader "Nature/Sky/GradientSky" {
 
 	Properties {
-		_UpperMidnightColour("Upper Midnight Colour", Color) = (0,0,0.208,1)
-		_LowerMidnightColour("Lower Midnight Colour", Color) = (0,0.137,0.404,1)
-		_UpperDawnStartColour("Upper Dawn Start Colour", Color) = (0.043, 0, 0.345,1)
-		_LowerDawnStartColour("Lower Dawn Start Colour", Color) = (0, 0.165, 0.529,1)
-		_UpperDawnMidColour("Upper Dawn Mid Colour", Color) = (0.870, 0.917, 0,1)
-		_LowerDawnMidColour("Lower Dawn Mid Colour", Color) = (1, 0.302, 0.302,1)
-		_UpperDawnEndColour("Upper Dawn End Colour", Color) = (0.470, 0.914, 1,1)
-		_LowerDawnEndColour("Lower Dawn End Colour", Color) = (0.856, 0.914, 1,1)
-		_UpperMiddayColour("Upper Midday Colour", Color) = (0.447, 0.976, 1,1)
-		_LowerMiddayColour("Lower Midday Colour", Color) = (0.706, 0.706, 1,1)
-		_UpperDuskStartColour("Upper Dusk Start Colour", Color) = (0.357, 0.639, 0.808,1)
-		_LowerDuskStartColour("Lower Dusk Start Colour", Color) = (0.216, 0.216, 0.965,1)
-		_UpperDuskMidColour("Upper Dusk Mid Colour", Color) = (0.196, 0.255, 0.839,1)
-		_LowerDuskMidColour("Lower Dusk Mid Colour", Color) = (0.745, 0.216, 1,1)
-		_UpperDuskEndColour("Upper Dusk End Colour", Color) = (0, 0.051, 0.573,1)
-		_LowerDuskEndColour("Lower Dusk End Colour", Color) = (0, 0, 0.278,1)
+		[HideInInspector] _C0U("C0U", Color) = (1,1,1,1)
+		[HideInInspector] _C0L("C0L", Color) = (1,1,1,1)
+		[HideInInspector] _C1U("C1U", Color) = (1,1,1,1)
+		[HideInInspector] _C1L("C1L", Color) = (1,1,1,1)
+		[HideInInspector] _C2U("C2U", Color) = (1,1,1,1)
+		[HideInInspector] _C2L("C2L", Color) = (1,1,1,1)
+		[HideInInspector] _C3U("C3U", Color) = (1,1,1,1)
+		[HideInInspector] _C3L("C3L", Color) = (1,1,1,1)
+		[HideInInspector] _C4U("C4U", Color) = (1,1,1,1)
+		[HideInInspector] _C4L("C4L", Color) = (1,1,1,1)
+		[HideInInspector] _C5U("C5U", Color) = (1,1,1,1)
+		[HideInInspector] _C5L("C5L", Color) = (1,1,1,1)
+		[HideInInspector] _C6U("C6U", Color) = (1,1,1,1)
+		[HideInInspector] _C6L("C6L", Color) = (1,1,1,1)
+		[HideInInspector] _C7U("C7U", Color) = (1,1,1,1)
+		[HideInInspector] _C7L("C7L", Color) = (1,1,1,1)
 	
-		_DawnTime("Dawn Time (mins from midnight)", float) = 360.0
-		_DuskTime("Dusk Time (mins from midnight)", float) = 1140.0
-		_DawnLength("Dawn Length (mins)", float) = 60.0
-		_DuskLength("Dusk Length (mins)", float) = 60.0
+		[HideInInspector] _DawnTime("Dawn Time (mins from midnight)", float) = 360.0
+		[HideInInspector] _DuskTime("Dusk Time (mins from midnight)", float) = 1140.0
+		[HideInInspector] _DawnLength("Dawn Length (mins)", float) = 60.0
+		[HideInInspector] _DuskLength("Dusk Length (mins)", float) = 60.0
 		[HideInInspector] _CurrentTime("Current Time (mins from midnight)", float) = 360.0
 	}
 	
@@ -44,28 +44,28 @@
 				float4 texcoord0 : TEXCOORD0;
 			};
 
-			uniform float4 _UpperMidnightColour;
-			uniform float4 _LowerMidnightColour;
-			uniform float4 _UpperDawnStartColour;
-			uniform float4 _LowerDawnStartColour;
-			uniform float4 _UpperDawnMidColour;
-			uniform float4 _LowerDawnMidColour;
-			uniform float4 _UpperDawnEndColour;
-			uniform float4 _LowerDawnEndColour;
-			uniform float4 _UpperMiddayColour;
-			uniform float4 _LowerMiddayColour;
-			uniform float4 _UpperDuskStartColour;
-			uniform float4 _LowerDuskStartColour;
-			uniform float4 _UpperDuskMidColour;
-			uniform float4 _LowerDuskMidColour;
-			uniform float4 _UpperDuskEndColour;
-			uniform float4 _LowerDuskEndColour;
+			uniform float4 _C0U;
+			uniform float4 _C0L;
+			uniform float4 _C1U;
+			uniform float4 _C1L;
+			uniform float4 _C2U;
+			uniform float4 _C2L;
+			uniform float4 _C3U;
+			uniform float4 _C3L;
+			uniform float4 _C4U;
+			uniform float4 _C4L;
+			uniform float4 _C5U;
+			uniform float4 _C5L;
+			uniform float4 _C6U;
+			uniform float4 _C6L;
+			uniform float4 _C7U;
+			uniform float4 _C7L;
 			
 			uniform float _DawnTime;
 			uniform float _DuskTime;
 			uniform float _DawnLength;
 			uniform float _DuskLength;
-			uniform float _CurrentTime;
+			uniform float _CurrentTime; 
 			
 			fragmentInput vert(vertexInput i){
 				fragmentInput o;
@@ -81,36 +81,36 @@
 				
 				if (_CurrentTime < _DawnTime) {
 					ratio = _CurrentTime / _DawnTime;
-					top = lerp(_UpperMidnightColour, _UpperDawnStartColour, ratio);
-					bot = lerp(_LowerMidnightColour, _LowerDawnStartColour, ratio);
+					top = lerp(_C0U, _C1U, ratio);
+					bot = lerp(_C0L, _C1L, ratio);
 				} else if (_CurrentTime < _DawnTime + (_DawnLength / 2)) {
 					ratio = (_CurrentTime - _DawnTime) / (_DawnLength / 2);
-					top = lerp(_UpperDawnStartColour, _UpperDawnMidColour, ratio);
-					bot = lerp(_LowerDawnStartColour, _LowerDawnMidColour, ratio);
+					top = lerp(_C1U, _C2U, ratio);
+					bot = lerp(_C1L, _C2L, ratio);
 				} else if (_CurrentTime < _DawnTime + _DawnLength) {
 					ratio = (_CurrentTime - (_DawnTime + (_DawnLength / 2))) / (_DawnLength / 2);
-					top = lerp(_UpperDawnMidColour, _UpperDawnEndColour, ratio);
-					bot = lerp(_LowerDawnMidColour, _LowerDawnEndColour, ratio);
+					top = lerp(_C2U, _C3U, ratio);
+					bot = lerp(_C2L, _C3L, ratio);
 				} else if (_CurrentTime < 720) {
 					ratio = (_CurrentTime - (_DawnTime + _DawnLength)) / (720 - (_DawnTime + _DawnLength));
-					top = lerp(_UpperDawnEndColour, _UpperMiddayColour, ratio);
-					bot = lerp(_LowerDawnEndColour, _LowerMiddayColour, ratio);
+					top = lerp(_C3U, _C4U, ratio);
+					bot = lerp(_C3L, _C4L, ratio);
 				} else if (_CurrentTime < _DuskTime) {
 					ratio = (_CurrentTime - 720) / (_DuskTime - 720);
-					top = lerp(_UpperMiddayColour, _UpperDuskStartColour, ratio);
-					bot = lerp(_LowerMiddayColour, _LowerDuskStartColour, ratio);
+					top = lerp(_C4U, _C5U, ratio);
+					bot = lerp(_C4L, _C5U, ratio);
 				} else if (_CurrentTime < _DuskTime + (_DuskLength / 2)) {
 					ratio = (_CurrentTime - _DuskTime) / (_DuskLength / 2);
-					top = lerp(_UpperDuskStartColour, _UpperDuskMidColour, ratio);
-					bot = lerp(_LowerDuskStartColour, _LowerDuskMidColour, ratio);
+					top = lerp(_C5U, _C6U, ratio);
+					bot = lerp(_C5L, _C6L, ratio);
 				} else if (_CurrentTime < _DuskTime + _DuskLength) {
 					ratio = (_CurrentTime - (_DuskTime + (_DuskLength / 2))) / (_DuskLength / 2);
-					top = lerp(_UpperDuskMidColour, _UpperDuskEndColour, ratio);
-					bot = lerp(_LowerDuskMidColour, _LowerDuskEndColour, ratio);
+					top = lerp(_C6U, _C7U, ratio);
+					bot = lerp(_C6L, _C7L, ratio);
 				} else {
 					ratio = (_CurrentTime - (_DuskTime + _DuskLength)) / (1440 - (_DuskTime + _DuskLength));
-					top = lerp(_UpperDuskEndColour, _UpperMidnightColour, ratio);
-					bot = lerp(_LowerDuskEndColour, _LowerMidnightColour, ratio);
+					top = lerp(_C7U, _C0U, ratio);
+					bot = lerp(_C7L, _C0L, ratio);
 				}
 				
 				float topValue = 1 - i.texcoord0.y;
