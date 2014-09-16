@@ -4,6 +4,9 @@ using System.Collections;
 public class StringUtils {
 
 	public static float ConvertTimeStringToFloat (string timeString) {
+	
+		if (timeString == null || timeString.Equals("")) timeString = "00:00:00";
+		
 		char[] splitchar = { ':' };
 		string[] comps = timeString.Split(splitchar);
 		int hours = 0;

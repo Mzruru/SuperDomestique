@@ -6,9 +6,8 @@ public class TimeOfDay : MonoBehaviour {
 
 	[Tooltip("The time of day in format HH:MM:SS (or HH:MM), 24 hour clock")]public string timeOfDay = "00:00:00";
 	[Tooltip("How fast time passes")] public float timeScale = 2.0f;
-	[Tooltip("An object which has a material that uses GradientSky shader")] public GameObject timeTarget;
 
-	[HideInInspector]public float _currentTime = 0.0f;
+	private float _currentTime = 0.0f;
 	
 	// Use this for initialization
 	void Start () {
@@ -22,9 +21,17 @@ public class TimeOfDay : MonoBehaviour {
 		if (_currentTime > 1440.0f) {
 			_currentTime -= 1440.0f;
 		}
-
-		timeTarget.renderer.sharedMaterial.SetFloat ("_CurrentTime", _currentTime);
 		
 		timeOfDay = StringUtils.ConvertTimeFloatToString(_currentTime);
 	}
+	
+	public float currentTime
+	{
+		get { return _currentTime; }
+		set
+		{
+			currentTime = value;
+			timeOfDay = StringUtils.ConvertTimeFloatToString(_currentTime);
+		}
+	}	
 }
