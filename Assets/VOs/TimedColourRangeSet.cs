@@ -2,14 +2,14 @@
 using System.Collections;
 
 [System.Serializable]
-public class ColourSet {
+public class TimedColourRangeSet {
 
 	public TimeRange timeRange;
-	public ColourRange start;
-	public ColourRange mid;
-	public ColourRange end;
+	public DualColour start;
+	public DualColour mid;
+	public DualColour end;
 	
-	public ColourSet (TimeRange timeRange, ColourRange start, ColourRange mid, ColourRange end)
+	public TimedColourRangeSet (TimeRange timeRange, DualColour start, DualColour mid, DualColour end)
 	{
 		this.timeRange = timeRange;
 		this.start = start;

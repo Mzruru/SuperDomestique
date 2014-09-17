@@ -49,17 +49,21 @@ public class TimeRange {
 	
 	public float length
 	{
-		get { return StringUtils.ConvertTimeStringToFloat(end) - StringUtils.ConvertTimeStringToFloat(start); }
+		get { return endFloat - startFloat; }
 		set {
-			endFloat = StringUtils.ConvertTimeStringToFloat(start) + value;
+			endFloat = startFloat + value;
 		}
 	}
 	
 	public bool IsInRange (float time) {
-		return time > StringUtils.ConvertTimeStringToFloat(start) && time < StringUtils.ConvertTimeStringToFloat(end);
+		return time >= startFloat && time <= endFloat;
 	}
 	
-	public float Lerp (float time) {
-		return Mathf.Lerp(StringUtils.ConvertTimeStringToFloat(start), StringUtils.ConvertTimeStringToFloat(end), time);
+	public float Lerp (float value) {
+		return Mathf.Lerp(startFloat, endFloat, value);
+	}
+	
+	public float InverseLerp (float time) {
+		return Mathf.InverseLerp(startFloat, endFloat, time);
 	}
 }

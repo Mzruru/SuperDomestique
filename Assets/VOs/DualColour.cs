@@ -2,12 +2,12 @@
 using System.Collections;
 
 [System.Serializable]
-public class ColourRange {
+public class DualColour {
 
 	public Color upper;
 	public Color lower;
 	
-	public ColourRange (Color upper, Color lower)
+	public DualColour (Color upper, Color lower)
 	{
 		this.upper = upper;
 		this.lower = lower;
