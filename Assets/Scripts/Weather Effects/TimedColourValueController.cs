@@ -3,24 +3,21 @@ using System.Collections;
 using System.Collections.Generic;
 
 [ExecuteInEditMode]
-public abstract class TimedColourDensityController : MonoBehaviour {
+public abstract class TimedColourValueController : MonoBehaviour {
 
-	public GameObject timeController;
+	public TimeOfDay timeOfDay;
 	public List<TimedColourValue> sets;
-	
-	TimeOfDay timeOfDay;
 	
 	// Use this for initialization
 	void Start () {
-		if (!timeController) return;
-		timeOfDay = timeController.GetComponent<TimeOfDay> ();
+		if (!timeOfDay) {
+			Debug.Log (this.GetType() + ": you must assign a GameObject with the timeOfDay behaviour");
+			enabled = false;
+		}
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		
-		if (timeOfDay == null) return;
-		
 		float value = 0;
 		Color colour = new Color(0, 0, 0, 0);
 		foreach (TimedColourValue set in sets)
@@ -30,9 +27,12 @@ public abstract class TimedColourDensityController : MonoBehaviour {
 			colour += set.colour * setValue;
 		}
 		
-		colour /= value;
-		UpdateValues(colour, value);
+		if (value > 0)
+		{
+			colour /= value;
+			UpdateValues(colour, value);
+		}
 	}
 	
-	abstract protected void UpdateValues (Color colour, float value);
+	abstract protected void UpdateValues(Color colour, float value);
 }

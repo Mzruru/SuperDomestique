@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 [ExecuteInEditMode]
 public class SkyColours : MonoBehaviour
@@ -13,6 +14,12 @@ public class SkyColours : MonoBehaviour
 		[Tooltip("Colour of ambient light at night")]
 		public Color
 				nightAmbientLightColour;
+		[Tooltip("How overcast the sky is (blends to grey)"), Range(0,1)]
+		public float
+				overcastAmount = 0;
+		[Tooltip("How much the overcast darkens the sky"), Range(0,1)]
+		public float
+				overcastDarken = 0;
 				
 		//
 		public DualColour midnight = new DualColour (new Vector4 (0, 0, 0.208f, 1f), new Vector4 (0, 0.137f, 0.404f, 1f));
@@ -26,11 +33,15 @@ public class SkyColours : MonoBehaviour
 			new DualColour (new Vector4 (0.196f, 0.255f, 0.839f, 1), new Vector4 (0.745f, 0.216f, 1, 1)),
 			new DualColour (new Vector4 (0, 0.051f, 0.573f, 1), new Vector4 (0, 0, 0.278f, 1)));
 		TimeOfDay timeOfDay;
+		float[] times;
+		Color[] uppers;
+		Color[] lowers;
 		
 		// Use this for initialization
 		void Start ()
 		{
 				timeOfDay = GetComponent<TimeOfDay> ();
+				UpdateLookups ();
 				UpdateShaderColourValues ();
 		}
 		
@@ -57,6 +68,9 @@ public class SkyColours : MonoBehaviour
 				gameObject.renderer.sharedMaterial.SetFloat ("_DuskTime", dusk.timeRange.startFloat);
 				gameObject.renderer.sharedMaterial.SetFloat ("_DawnLength", dawn.timeRange.length);
 				gameObject.renderer.sharedMaterial.SetFloat ("_DuskLength", dusk.timeRange.length);
+				
+				gameObject.renderer.sharedMaterial.SetFloat ("_OvercastAmount", overcastAmount);
+				gameObject.renderer.sharedMaterial.SetFloat ("_OvercastDarken", overcastDarken);
 		}
 		
 		void Update ()
@@ -70,7 +84,10 @@ public class SkyColours : MonoBehaviour
 				}
 				
 				#if UNITY_EDITOR
-				UpdateShaderColourValues();
+				if (!Application.isPlaying) {
+					UpdateLookups();
+					UpdateShaderColourValues();
+				}
 				#endif
 		}
 		
@@ -85,5 +102,68 @@ public class SkyColours : MonoBehaviour
 				} else if (currentTime > dawn.timeRange.endFloat) {
 						RenderSettings.ambientLight = dayAmbientLightColour;
 				}
+		}
+		
+		public float GetCurrentTime ()
+		{
+			return timeOfDay.currentTime;
+		}
+		
+		public DualColour GetColoursForCurrentTime ()
+		{
+				if (timeOfDay == null)
+						return GetColoursForTime (0);
+				return GetColoursForTime (timeOfDay.currentTime);
+		}
+	
+		public DualColour GetColoursForTime (float time)
+		{
+				float ratio = 0;
+		
+				int c = times.Length;
+				float minusValue = 0;
+				Color previousUpper = uppers [0];
+				Color previousLower = uppers [1]; 
+				Color nextUpper = Color.black;
+				Color nextLower = Color.black;
+				for (int i = 1; i < c; i++) {
+						if (time <= times [i]) {
+								nextUpper = uppers [i];
+								nextLower = lowers [i];
+					
+								ratio = (time - minusValue) / (times [i] - minusValue);
+								break;
+						}
+				
+						minusValue = times [i];
+						previousUpper = uppers [i];
+						previousLower = lowers [i];
+				}
+			
+				Color upper = Color.Lerp (previousUpper, nextUpper, ratio); 
+				Color lower = Color.Lerp (previousLower, nextLower, ratio);
+				if (overcastAmount > 0)
+				{
+					upper = GetOvercastColour(upper);
+					lower = GetOvercastColour(lower);
+				}
+				return new DualColour (upper, lower);
+		}
+		
+		public Color GetOvercastColour (Color original)
+		{
+			float overcastValue = ((original.r + original.g + original.b) / 3) * (1 - overcastDarken);
+			Color overcastColour = new Color(overcastValue, overcastValue, overcastValue, 1); 
+			return Color.Lerp (original, overcastColour, overcastAmount);
+		}
+		
+		void UpdateLookups ()
+		{
+			times = new float[]{0.0f, dawn.timeRange.startFloat, dawn.timeRange.startFloat + (dawn.timeRange.length / 2), dawn.timeRange.endFloat, 720f,
+			dusk.timeRange.startFloat, dusk.timeRange.startFloat + (dusk.timeRange.length / 2), dusk.timeRange.endFloat, 1440f};
+				uppers = new Color[]{midnight.upper, dawn.start.upper, dawn.mid.upper, dawn.end.upper, midday.upper, dusk.start.upper, dusk.mid.upper
+			, dusk.end.upper, midnight.upper};
+				lowers = new Color[]{midnight.lower, dawn.start.lower, dawn.mid.lower, dawn.end.lower, midday.lower, dusk.start.lower, dusk.mid.lower
+			, dusk.end.lower, midnight.lower};
 		}
 }

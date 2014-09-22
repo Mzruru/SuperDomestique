@@ -23,6 +23,8 @@
 		[HideInInspector] _DawnLength("Dawn Length (mins)", float) = 60.0
 		[HideInInspector] _DuskLength("Dusk Length (mins)", float) = 60.0
 		[HideInInspector] _CurrentTime("Current Time (mins from midnight)", float) = 360.0
+		[HideInInspector] _OvercastAmount("Overcast sky (0 - 1)", float) = 0.0
+		[HideInInspector] _OvercastDarken("Overcast darken (0 - 1)", float) = 0.0
 	}
 	
 	SubShader {
@@ -66,7 +68,9 @@
 			uniform float _DuskTime;
 			uniform float _DawnLength;
 			uniform float _DuskLength;
-			uniform float _CurrentTime; 
+			uniform float _CurrentTime;
+			uniform float _OvercastAmount;
+			uniform float _OvercastDarken;
 			
 			fragmentInput vert(vertexInput i){
 				fragmentInput o;
@@ -117,6 +121,14 @@
 				float topValue = 1 - i.texcoord0.y;
 				float bottomValue = i.texcoord0.y;
 				float3 mixedRGB = (top.rgb *topValue) + (bot.rgb * bottomValue);
+				
+				if (_OvercastAmount > 0)
+				{
+					float overcastValue = ((mixedRGB[0] + mixedRGB[1] + mixedRGB[2]) / 3) * (1 - _OvercastDarken);
+					float3 overcastColour = (overcastValue, overcastValue, overcastValue); 
+					mixedRGB = lerp (mixedRGB, overcastColour, _OvercastAmount);
+				}
+				
 				return float4(mixedRGB,1.0);
 			}
 			

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 [ExecuteInEditMode]
-public class FogController : TimedColourDensityController {
+public class FogController : TimedColourValueController {
 	
 	override protected void UpdateValues (Color colour, float value) {
 		if (value <= 0) RenderSettings.fog = false;
